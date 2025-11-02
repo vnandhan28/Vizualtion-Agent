@@ -1,7 +1,7 @@
 # app.py (streamlit)
 
 import streamlit as st
-from core import Agent, create_client
+from Agent import Agent, create_client
 
 api_key = st.secrets["HF_TOKEN"]   # or st.text_input(...)
 client = create_client(api_key)
