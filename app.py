@@ -22,7 +22,7 @@ st.markdown(
 def load_sample_data():
     cancer_df = pd.read_csv("cancer-risk-factors.csv")
     netflix_df = pd.read_csv("netflix_titles.csv")
-    uber_df = pd.read-csv("ncr_ride_bookings.csv")
+    uber_df = pd.read_csv("ncr_ride_bookings.csv")
     return {
         "Cancer risk factors": cancer_df,
         "Netflix title": netflix_df,
