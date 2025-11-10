@@ -1,7 +1,12 @@
+# .streamlit/config.toml
 
 [theme]
-primaryColor="#4CAF50"
-backgroundColor="#F5F5F5"
-secondaryBackgroundColor="#E8F5E9"
-textColor="#212121"
-font="sans serif"
+primaryColor = "#1F77B4"         # Deep blue (buttons, sliders)
+backgroundColor = "#FFFFFF"      # Clean white background
+secondaryBackgroundColor = "#F4F6F8"  # Light gray card-style panels
+textColor = "#1A1A1A"            # Dark gray text
+font = "sans serif"              # Modern clean font
+
+[server]
+enableXsrfProtection = false
+headless = true
