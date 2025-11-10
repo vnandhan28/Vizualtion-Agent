@@ -174,7 +174,7 @@ def run_python_chart(code: str, datasets: Dict[str, Any]):
             def query(self, sql_text: str):
                 assert_readonly(sql_text)
                 df = self._con.query(sql_text).to_df()
-                return _QueryResultWrapper(df)
+                return df
 
         sql = SQLProxy(datasets)
 
