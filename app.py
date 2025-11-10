@@ -3,7 +3,7 @@
 import streamlit as st
 from AgentClass import Agent, create_client
 
-api_key = st.secrets["HF_TOKEN"]   # or st.text_input(...)
+api_key = st.secrets["HF_key"]   # or st.text_input(...)
 client = create_client(api_key)
 
 agent = Agent(client)
