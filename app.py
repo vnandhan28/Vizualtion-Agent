@@ -12,12 +12,27 @@ st.markdown(
     """
     Upload a **CSV or Excel** dataset and ask natural-language questions like:
     
-    - "Compare average risk score by cancer type"
-    - "Plot BMI vs Age, colored by Risk_Level"
-    - "Show top 5 Cancer_Types by obesity"
+    - "Show a 3D scatter plot of Age, BMI, and Overall_Risk_Score colored by Cancer_Type."
+    - "Create a stacked area chart showing how the number of Movies and TV Shows released each year has changed since 2000, and color it by type."
+    - "Count number of rides by Booking Status and show as pie chart."
     """
 )
+# --- Sample datasets ---
+@st.cache_data
+def load_sample_data():
+    cancer_df = pd.read_csv("cancer-risk-factors.csv")
+    netflix_df = pd.read_csv("netflix_titles.csv")
+    uber_df = pd.read-csv("ncr_ride_bookings.csv')
+    return {
+        "Cancer risk factors": cancer_df,
+        "Netflix title": netflix_df,
+        "Uber Bookings" : uber_df,
+    }
 
+samples = load_sample_data()
+sample_names = list(samples.keys())
+
+sample_choice = st.selectbox("Or try a sample dataset:", ["None"] + sample_names)
 # --- Sidebar ---
 with st.sidebar:
     st.header("⚙️ Controls")
@@ -57,7 +72,7 @@ if uploaded:
         question = st.text_input("Type your question here:")
 
         if question:
-            with st.spinner("🧠 Thinking..."):
+            with st.spinner(" Thinking..."):
                 result = agent.answer(question, {"data": df})
 
             st.markdown("### 📈 Answer")
