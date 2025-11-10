@@ -8,3 +8,4 @@ altair
 matplotlib
 plotly
 requests
+openpyxl
