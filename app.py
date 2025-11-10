@@ -72,24 +72,25 @@ elif sample_choice != "None":
     df = samples[sample_choice]
     st.success(f"✅ Loaded sample dataset: {sample_choice}")
 
-        # --- Ask a Question ---
-        st.markdown("### 💬 Ask a Question")
-        question = st.text_input("Type your question here:")
+if df is not None:
+    st.dataframe(df.head(), use_container_width=True)
 
-        if question:
-            with st.spinner(" Thinking..."):
-                result = agent.answer(question, {"data": df})
+    question = st.text_input("💬 Ask something about the data:")
+    if question:
+        with st.spinner("🧠 Thinking..."):
+            result = agent.answer(question, {"data": df})
+        
+        st.subheader("📈 Result")
 
-            st.markdown("### 📈 Answer")
-            if result.kind == "plotly":
-                st.plotly_chart(result.obj, use_container_width=True)
-            elif result.kind == "matplotlib":
-                st.pyplot(result.obj)
-            elif result.kind == "altair":
-                st.altair_chart(result.obj, use_container_width=True)
+        if result.kind == "plotly":
+            st.plotly_chart(result.obj, use_container_width=True)
+        elif result.kind == "matplotlib":
+            st.pyplot(result.obj)
+        elif result.kind == "altair":
+            st.altair_chart(result.obj, use_container_width=True)
 
-            st.success("✅ Chart generated successfully!")
-            st.session_state.chat_history.append({
+        st.success("✅ Chart generated successfully!")
+        st.session_state.chat_history.append({
                 "q": question,
                 "a": result.explanation,
                 "kind": result.kind,
