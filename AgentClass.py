@@ -209,8 +209,44 @@ def run_python_chart(code: str, datasets: Dict[str, Any]):
 class Agent:
     def __init__(self, client: OpenAI, model="moonshotai/Kimi-K2-Instruct-0905"):
         self.codegen = HFRouterCodeGenerator(client, model)
+        self.history = []  
 
     def answer(self, question: str, dfs: Dict[str, Any]):
-        req = GenRequest(question=question, datasets=dfs)
+
+        continuation_keywords = [
+            "now", "again", "also", "same", "continue", "compare",
+            "filter", "only", "add", "change", "modify", "redo",
+            "use previous", "previous", "last"
+        ]
+
+        q_lower = question.lower()
+
+        is_continuation = any(kw in q_lower for kw in continuation_keywords)
+
+        if not is_continuation:
+            self.history = []  
+
+        self.history.append({"role": "user", "content": question})
+
+
+        limited_history = self.history[-4:]
+
+        combined_question = ""
+        for turn in limited_history:
+            combined_question += f"{turn['role'].upper()}: {turn['content']}\n"
+
+        req = GenRequest(
+            question=combined_question,
+            datasets=dfs
+        )
+
+ 
         gen = self.codegen.generate(req)
-        return run_python_chart(gen.code, dfs)
+        result = run_python_chart(gen.code, dfs)
+
+        self.history.append({
+            "role": "assistant",
+            "content": result.explanation
+        })
+
+        return result
