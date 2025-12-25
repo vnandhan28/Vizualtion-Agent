@@ -15,13 +15,13 @@ import altair as alt
 from openai import OpenAI
 
 
-# ----------- CONFIG ------------
+
 def create_client(api_key: str):
     return OpenAI(
         base_url="https://router.huggingface.co/v1",
         api_key=api_key,
     )
-# --------------------------------
+
 
 
 @dataclass
