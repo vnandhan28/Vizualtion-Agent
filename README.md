@@ -1,2 +1,2 @@
 # VizAgent
-A visualization agent for your data
+A visualization agent for your Tabular data
