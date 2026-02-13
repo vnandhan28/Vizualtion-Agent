@@ -1,9 +1,9 @@
 from typing import Dict, Any, Optional, Tuple
 from langchain_openai import ChatOpenAI
-from langchain.agents import create_openai_tools_agent, AgentExecutor
+from langchain.agents import create_agent
 from langchain.memory import ConversationBufferMemory
 from langchain.tools import StructuredTool
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, SystemMessage
 from AgentClass import HFRouterCodeGenerator, run_python_chart, GenRequest, create_client, ChartResult
 
 class LangChainVizAgent:
@@ -16,7 +16,7 @@ class LangChainVizAgent:
         )
         client = create_client(api_key)
         self.codegen = HFRouterCodeGenerator(client=client, model=model)
-        self.memory = ConversationBufferMemory(memory_key="chat_history", return_messages=True)
+        self.memory = ConversationBufferMemory(memory_key="messages", return_messages=True)
         self.latest_result: Optional[ChartResult] = None
         self.datasets: Dict[str, Any] = {}
 
@@ -38,21 +38,28 @@ class LangChainVizAgent:
             )
         ]
 
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are an AI data visualization assistant. When a user asks a question about their data, use the 'generate_visualization' tool to create a chart and get an explanation. If you can answer without the tool, do so directly."),
-            MessagesPlaceholder(variable_name="chat_history"),
-            ("user", "{input}"),
-            MessagesPlaceholder(variable_name="agent_scratchpad"),
-        ])
+        system_prompt = "You are an AI data visualization assistant. When a user asks a question about their data, use the 'generate_visualization' tool to create a chart and get an explanation. If you can answer without the tool, do so directly."
 
-        agent = create_openai_tools_agent(self.llm, tools, prompt)
-        executor = AgentExecutor(
-            agent=agent, 
-            tools=tools, 
-            memory=self.memory,
-            verbose=False,
-            handle_parsing_errors=True
+        # The new create_agent returns a compiled graph
+        agent = create_agent(
+            model=self.llm,
+            tools=tools,
+            system_prompt=system_prompt
         )
         
-        response = executor.invoke({"input": question})
-        return self.latest_result, response["output"]
+        # Get history from memory
+        history = self.memory.load_memory_variables({})["messages"]
+        
+        # Add current user message
+        messages = history + [("user", question)]
+        
+        # Invoke agent
+        response = agent.invoke({"messages": messages})
+        
+        # Last message in the response is the assistant's output
+        output = response["messages"][-1].content
+        
+        # Save to memory
+        self.memory.save_context({"input": question}, {"output": output})
+        
+        return self.latest_result, output
