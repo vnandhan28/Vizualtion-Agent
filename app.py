@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
-from AgentClass import Agent, create_client
+from langchain_agent import LangChainVizAgent
 
 st.set_page_config(
     page_title="🔍 AI DataViz Agent",
@@ -43,21 +43,22 @@ with st.sidebar:
     if st.button("🧹 Clear Conversation"):
         st.session_state.chat_messages = []
         if "agent" in st.session_state:
-            st.session_state.agent.history = []
+            st.session_state.agent.memory.clear()
         st.rerun()
 
     st.markdown("---")
     st.subheader("🧠 Memory Panel")
-    if "agent" in st.session_state and st.session_state.agent.history:
-        for item in st.session_state.agent.history[-4:]:
-            st.write(f"**{item['role'].capitalize()}**: {item['content']}")
+    if "agent" in st.session_state:
+        messages = st.session_state.agent.memory.chat_memory.messages
+        for msg in messages[-4:]:
+            role = "User" if msg.type == "human" else "Assistant"
+            st.write(f"**{role}**: {msg.content}")
 
 # agent connection
 api_key = st.secrets["HF_key"]
-client = create_client(api_key)
 
 if "agent" not in st.session_state:
-    st.session_state.agent = Agent(client)
+    st.session_state.agent = LangChainVizAgent(api_key)
 
 if "chat_messages" not in st.session_state:
     st.session_state.chat_messages = []
@@ -117,19 +118,23 @@ else:
         # Run agent
         with st.spinner("🧠 Thinking..."):
             try:
-                result = st.session_state.agent.answer(prompt, {"data": df})
+                chart_result, explanation = st.session_state.agent.ask(prompt, {"data": df})
 
                 # Save to UI chat
-                st.session_state.chat_messages.append({
+                msg_to_save = {
                     "role": "assistant",
-                    "content": result.explanation,
-                    "chart": result.obj
-                })
+                    "content": explanation,
+                }
+                if chart_result:
+                    msg_to_save["chart"] = chart_result.obj
+                
+                st.session_state.chat_messages.append(msg_to_save)
 
                 # display result
                 block = st.chat_message("assistant")
-                block.markdown(result.explanation)
-                st.write(result.obj)
+                block.markdown(explanation)
+                if chart_result:
+                    st.write(chart_result.obj)
 
             except Exception as e:
                 st.error(f" Error: {e}")
