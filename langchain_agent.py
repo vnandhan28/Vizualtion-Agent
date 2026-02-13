@@ -34,12 +34,12 @@ class LangChainVizAgent:
         tools = [
             StructuredTool.from_function(
                 func=self._generate_visualization_tool,
-                name="generate_visualization",
-                description="Use this tool to answer questions about data by generating visualizations, charts, or performing data analysis. Input should be the user's natural language question."
+                name="data_assistant",
+                description="Use this tool to answer questions about data by generating visualizations, charts, or performing data preparation/cleaning (renaming columns, removing nulls, filtering, etc.). Input should be the user's natural language question."
             )
         ]
 
-        system_prompt = "You are an AI data visualization assistant. When a user asks a question about their data, use the 'generate_visualization' tool to create a chart and get an explanation. If you can answer without the tool, do so directly."
+        system_prompt = "You are an AI data assistant. When a user asks a question about their data or requests data preparation (like cleaning, renaming, or filtering), use the 'data_assistant' tool to perform the task and get an explanation. If you can answer without the tool, do so directly."
 
         # The new create_agent returns a compiled graph
         agent = create_agent(

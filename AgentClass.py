@@ -42,6 +42,7 @@ class ChartResult:
     kind: str
     obj: Any
     explanation: str
+    modified_datasets: Optional[Dict[str, Any]] = None
 
 
 def as_plotly(fig, explanation: str) -> ChartResult:
@@ -54,6 +55,10 @@ def as_matplotlib(fig, explanation: str) -> ChartResult:
 
 def as_altair(chart, explanation: str) -> ChartResult:
     return ChartResult(kind="altair", obj=chart, explanation=explanation)
+
+
+def as_data_prep(datasets: Dict[str, Any], explanation: str) -> ChartResult:
+    return ChartResult(kind="data_prep", obj=None, explanation=explanation, modified_datasets=datasets)
 
 
 def _strip_code_fences(s: str) -> str:
@@ -92,17 +97,19 @@ class HFRouterCodeGenerator:
 
     def generate(self, req: GenRequest) -> GenResponse:
         system_prompt = """
-You are a data assistant that generates clean, safe Python or SQL *Python code* to answer questions about tabular data.
+You are a data assistant that generates clean, safe Python or SQL *Python code* to answer questions about tabular data, including visualization and data preparation (cleaning, renaming, filtering).
 
 Hard rules (must follow):
 - ONLY return plain Python code. No markdown, no comments, no extra text.
-- Do not write imports. The following are already available: pd, np, duckdb, plt, px, alt, ChartResult, as_plotly, as_matplotlib, as_altair, and a SQL helper named `sql`.
+- Do not write imports. The following are already available: pd, np, duckdb, plt, px, alt, ChartResult, as_plotly, as_matplotlib, as_altair, as_data_prep, and a SQL helper named `sql`.
 - If using SQL, run queries via: df = sql.query("SELECT ...")
 - If using pandas only, that’s fine too.
 - You MUST set a variable `result: ChartResult` by calling one of:
-  result = as_plotly(fig, "short explanation")
-  result = as_matplotlib(fig, "short explanation")
-  result = as_altair(chart, "short explanation")
+  result = as_plotly(fig, "explanation")
+  result = as_matplotlib(fig, "explanation")
+  result = as_altair(chart, "explanation")
+  result = as_data_prep({"dataset_name": modified_df}, "explanation") # For data cleaning/transformation
+- When using `as_data_prep`, provide the full dictionary of datasets, even if only one is modified.
 - Never write to disk, never use eval/exec/open/input.
 
 Hints:
@@ -126,7 +133,7 @@ Hints:
         Instructions:
         Generate valid Python code (pandas or DuckDB SQL) to solve the task.
         Use only available columns from the schema above.
-        Return Python code that sets result: ChartResult using as_plotly, as_matplotlib, or as_altair.
+        Return Python code that sets result: ChartResult using as_plotly, as_matplotlib, as_altair, or as_data_prep.
         """
 
         chat = self.client.chat.completions.create(
@@ -187,6 +194,7 @@ def run_python_chart(code: str, datasets: Dict[str, Any]):
             "as_plotly": as_plotly,
             "as_matplotlib": as_matplotlib,
             "as_altair": as_altair,
+            "as_data_prep": as_data_prep,
             "normalize_str_series": normalize_str_series,
             "sql": sql,
 
