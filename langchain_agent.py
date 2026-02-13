@@ -1,7 +1,7 @@
 from typing import Dict, Any, Optional, Tuple
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
-from langchain.memory import ConversationBufferMemory
+from langchain_classic.memory import ConversationBufferMemory
 from langchain.tools import StructuredTool
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder, SystemMessage
 from AgentClass import HFRouterCodeGenerator, run_python_chart, GenRequest, create_client, ChartResult
