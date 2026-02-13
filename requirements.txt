@@ -12,3 +12,6 @@ openpyxl
 langchain
 langchain-openai
 langchain-core
+langchain-community
+
+pydantic
