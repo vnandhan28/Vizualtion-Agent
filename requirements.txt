@@ -9,3 +9,6 @@ matplotlib
 plotly
 requests
 openpyxl
+langchain
+langchain-openai
+langchain-core
